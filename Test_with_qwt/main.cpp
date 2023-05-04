@@ -6,63 +6,56 @@
 #include <qwt_plot.h>
 #include <qwt_plot_curve.h>
 #include <QPen>
+#include <fstream>
 
-class Myclass
+double sygn(float t)
 {
-public:
-    double y, xMin, xMax;
-    void func(QwtPlot *plot)
-    {
-        QwtPlotCurve *curve = new QwtPlotCurve();
-        curve->setPen(QPen(Qt::blue));
+    double s;
+    float T = 0.03;
 
-        QVector<double> xValues, yValues;
+    if (t == 0)
+        s = 0;
+    else if ((t > 0) && (t <= T / 4))
+        s = 5 * t / (T / 4);
+    else if ((t > T / 4) && (t <= 0.75 * T))
+        s = 5 - 15 * (t - T / 4) / (0.75 * T);
+    else if ((t > 0.75 * T) && (t <= T))
+        s = 5 * t / (T / 4) - 20;
+    else if (t == T)
+        s = 0;
 
-        for (double x = xMin; x <= xMax; x += 0.1)
-        {
-            if (x >= -4 && x < -3)
-            {
-                y = 3;
-            }
-            else if (x >= -3 && x < 0)
-            {
-                y = -x;
-            }
-            else if (x >= 0 && x < 2)
-            {
-                y = x;
-            }
-            else if (x >= 2 && x < 4)
-            {
-                y = 2;
-            }
-
-            xValues.append(x);
-            yValues.append(y);
-        }
-
-        curve->setSamples(xValues, yValues);
-        curve->attach(plot);
-    }
-};
+    return s;
+}
 
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
-    QwtPlot *plot = new QwtPlot();
-    plot->setTitle("My Plot");
-    plot->setCanvasBackground(Qt::white);
-    plot->setAxisTitle(QwtPlot::xBottom, "X Axis");
-    plot->setAxisTitle(QwtPlot::yLeft, "Y Axis");
-    plot->setAxisScale(QwtPlot::xBottom, -4, 4);
 
-    Myclass obj;
-    obj.xMin = -4;
-    obj.xMax = 4;
-    obj.func(plot);
+    const float T = 0.03;
+    const int N = 200;
+    int i;
+    double w = (2 * 3.14159) / T;
+    float h = T / N;
+    double t[N], s[N];
+    for (i = 0; i < N; i++)
+    {
+        t[i] = i * h;
+        s[i] = sygn(t[i]);
+    }
 
-    plot->resize(600, 400);
-    plot->show();
+    QwtPlot plot;
+    plot.setTitle("Signal");
+    plot.setCanvasBackground(Qt::white);
+
+    QwtPlotCurve *curve = new QwtPlotCurve();
+    curve->setPen(QPen(Qt::blue));
+    curve->setSamples(t, s, N);
+    curve->attach(&plot);
+
+    plot.resize(600, 400);
+    plot.show();
 
     return app.exec();
 }
+
+
